@@ -36,7 +36,7 @@ __author__ = """Aric Hagberg (hagberg@lanl.gov)"""
 
 __all__ = ['read_gml', 'parse_gml', 'generate_gml', 'write_gml']
 
-from cgi import escape
+from html import escape
 
 import networkx as nx
 from networkx.exception import NetworkXError

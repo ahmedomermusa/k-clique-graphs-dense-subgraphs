@@ -8,7 +8,6 @@ Created on Thu Jul 20 2016
 
 import networkx as nx
 import sys
-from read import read_gml
 from evaluation_metrics import (density,degree_density,triangle_density)
 
 def greedy_degree_density(G):
@@ -16,9 +15,9 @@ def greedy_degree_density(G):
 	Returns the subgraph with optimal degree density using 
 	Charikar's greedy algorithm
     """
-	neighbors=G.neighbors_iter
+	neighbors=G.neighbors
 	degrees=G.degree()
-	sum_degrees = sum(degrees.values())
+	sum_degrees = sum(dict(degrees).values())
 	num_nodes = G.number_of_nodes()
 	nodes=sorted(degrees,key=degrees.get)
 	bin_boundaries=[0]
@@ -72,8 +71,8 @@ def greedy_quasi_cliques(G, alpha):
 	""" 
 	Returns the subgraph with optimal edge surplus
     """
-	neighbors=G.neighbors_iter
-	degrees=G.degree()
+	neighbors=G.neighbors
+	degrees=dict(G.degree())
 	sum_degrees = sum(degrees.values())
 	num_nodes = G.number_of_nodes()
 	nodes=sorted(degrees,key=degrees.get)
@@ -100,7 +99,7 @@ def greedy_quasi_cliques(G, alpha):
 			bin_boundaries[degrees[v]]+=1
 			degrees[v]-=1
 		
-		for u in nbrs[v]:
+		for u in list(nbrs[v]):
 			
 			nbrs[u].remove(v)
 			pos=node_pos[u]
@@ -380,65 +379,4 @@ def greedy_triangle_graph_density(G):
 	return subg
 
 	
-def main():
-	""" 
-	Main method
-	"""
-	filename = sys.argv[1]
-	if filename.split('.')[1] == 'gml':
-		G = read_gml('networks/' + filename)
-	else:
-		G = nx.read_edgelist('networks/' + filename, delimiter='\t', nodetype=int)
 
-	G = G.to_undirected()
-
-	for node in G.nodes_with_selfloops():
-		G.remove_edge(node, node)
-
-	G1 = nx.Graph()
-	for edge in G.edges():
-		u = edge[0]
-		v = edge[1]
-		if u == v:
-			continue
-		if not G1.has_edge(u, v):
-			G1.add_edge(u, v, weight=1.0)
-
-	G = G1
-	print "Number of nodes:", G.number_of_nodes()
-	print "Number of edges:", G.number_of_edges()
-	print
-
-	subg = greedy_degree_density(G)
-	print "----Greedy Degree Density----"
-	print "Degree Density: " + str(degree_density(subg))
-	print "Density: " + str(density(subg))
-	print "Triangle Density: " + str(triangle_density(subg))
-	print "# Nodes: " + str(subg.number_of_nodes())
-	print
-
-	subg = greedy_quasi_cliques(G, 0.333)
-	print "----Greedy Edge Surplus with alpha=1/3----"
-	print "Degree Density: " + str(degree_density(subg))
-	print "Density: " + str(density(subg))
-	print "Triangle Density: " + str(triangle_density(subg))
-	print "# Nodes: " + str(subg.number_of_nodes())
-	print
-
-	subg = greedy_triangle_density(G)
-	print "----Greedy Triangle Density----"
-	print "Degree Density: " + str(degree_density(subg))
-	print "Density: " + str(density(subg))
-	print "Triangle Density: " + str(triangle_density(subg))
-	print "# Nodes: " + str(subg.number_of_nodes())
-	print
-
-	subg = greedy_triangle_graph_density(G)
-	print "----Greedy Triangle-Graph Density----"
-	print "Degree Density: " + str(degree_density(subg))
-	print "Density: " + str(density(subg))
-	print "Triangle Density: " + str(triangle_density(subg))
-	print "# Nodes: " + str(subg.number_of_nodes())
-
-if __name__ == "__main__":
-    main()
